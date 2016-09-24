@@ -7,64 +7,25 @@ from sys import path
 path.append(r'C:\Program Files (x86)\Python35-32\Scripts')
 import EXIF
 
-def is_bissextile(year):
-    '''
-    check if the input year is bissextile
-    >>> is_bissextile(1997)
-    False
-    >>> is_bissextile(1996)
-    True
-    >>> is_bissextile(2100)
-    False
-    >>> is_bissextile(2000)
-    True
-    '''
-    if (year % 100) == 0:
-        return (year % 400 ) == 0
-    else:
-        return (year % 4) == 0
 
 def is_valid_date_prefix(sdt):
     '''
     >>> is_valid_date_prefix('19991231')
-    False
+    True
     >>> is_valid_date_prefix('20100229')
     False
     >>> is_valid_date_prefix('20100228')
     True
     >>> is_valid_date_prefix('20150510')
     True
+    >>> is_valid_date_prefix('20200510')
+    False
     '''
-    if len(sdt) != 8:   # YYYYMMDD, 8 bytes
+    try:
+        c = datetime.datetime.strptime(sdt,'%Y%m%d')
+    except ValueError:
         return False
-    if not sdt.isdigit():
-        return False
-    year = int(sdt[0:4])
-    if year < 2000:
-        #print('year < 2000, seems wrong!')
-        return False
-    month = int(sdt[4:6])
-    if month < 1 or month > 12:
-        return False
-    day = int(sdt[6:8])
-    if day < 1 or day > 31:
-        return False
-    if day > 28 and month in {2, 4, 6, 9, 11}:
-        if day > 30:
-            return False
-        if month == 2 and (day > 29 or not is_bissextile(year)):
-            return False
-
-    today = datetime.date.today()
-    if year < today.year:
-        return True
-    if year > today.year:
-        return False
-    if month < today.month:
-        return True
-    if month > today.month:
-        return False
-    if day > today.day:
+    if c > datetime.datetime.now():
         return False
     return True
 
@@ -72,8 +33,10 @@ def read_jpg_datetime(full_name):
     f = open(full_name, 'rb')
     tag = 'EXIF DateTimeOriginal'
     tags = EXIF.process_file(f, tag)
+    if tag in tags.keys():
+        return str(tags[tag])
+    tag = 'EXIF DateTimeDigitized'
     if tag not in tags.keys():
-        tag = 'EXIF DateTimeDigitized'
         tags = EXIF.process_file(f, tag)
     f.close()
 
@@ -82,6 +45,14 @@ def read_jpg_datetime(full_name):
     else:
         return ''
 
+def split_date_try_format(sdt, fmt):
+    try:
+        c = datetime.datetime.strptime(sdt, fmt)
+    except:
+        return ''
+    return c.strftime('%Y%m%d')
+
+
 def split_date(sdt):
     '''
     >>> split_date('abdfdfdsfdsf')
@@ -89,17 +60,22 @@ def split_date(sdt):
     >>> split_date(' ')
     ''
     >>> split_date('ddddd ttttt')
-    'ddddd'
+    ''
     >>> split_date('2010:12:31 12:31')
     '20101231'
+    >>> split_date('2010:12:31')
+    ''
+    >>> split_date('2010:02:01')
+    ''
+    >>> split_date('2010:02:01 12:31')
+    '20100201'
+    >>> split_date('2010:02:30 12:31')
+    ''
     '''
-    if sdt.find(' ') < 0:
-        return ''
-    lst = sdt.split(' ')
-    if len(lst) > 0:
-        return lst[0].replace(':', '')
-    else:
-        return ''
+    c = split_date_try_format(sdt, '%Y:%m:%d %H:%M:%S')
+    if not c:
+        c = split_date_try_format(sdt, '%Y:%m:%d %H:%M')
+    return c
 
 def make_new_name(full_name, userStr):
     sdt = userStr
