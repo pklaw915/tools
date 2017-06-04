@@ -1,10 +1,13 @@
 import os
 import tkinter
 import tkinter.filedialog
+import tkinter.messagebox
 import sys
 import datetime
+
+# install E:/tools/Develop/python/packages/exif-py-2.0.1
 from sys import path
-path.append(r'C:\Program Files (x86)\Python35-32\Scripts')
+path.append(r'C:\Program Files (x86)\Python36-32\Scripts')
 import EXIF
 
 
