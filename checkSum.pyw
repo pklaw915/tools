@@ -6,18 +6,18 @@ import tkinter.messagebox
 
 
 def calc_md5(fileName):
-    sh = hashlib.md5()
-    f = open(fileName, 'rb')
-    sh.update(f.read())
-    f.close()
-    return sh.hexdigest()
+    with open(fileName, 'rb') as f:
+        sh = hashlib.md5()
+        sh.update(f.read())
+        return sh.hexdigest()
+    return ''
 
 def calc_sha256(fileName):
-    sh = hashlib.sha256()
-    f = open(fileName, 'rb')
-    sh.update(f.read())
-    f.close()
-    return sh.hexdigest()
+    with open(fileName, 'rb') as f:
+        sh = hashlib.sha256()
+        sh.update(f.read())
+        return sh.hexdigest()
+    return ''
 
 class Application(tkinter.Frame):
     def __init__(self, master=None):
